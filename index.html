@@ -1624,7 +1624,151 @@ start(r.data.session.user)
 :
 $('online').textContent='● offline'
 );
+/* ===== GEM QUEST - ULEPSZENIA ===== */
 
+(function(){
+
+/* Dodatkowe style */
+const style=document.createElement('style');
+style.textContent=`
+.neon-mode{
+background:radial-gradient(circle at top,#063f5b 0,#10051b 48%,#08030d 100%)!important;
+}
+.neon-mode .panel{
+box-shadow:0 0 30px #00e5ff33,0 20px 60px #0005!important;
+}
+.neon-mode .gem{
+box-shadow:inset 0 0 0 1px #00e5ff44,0 0 16px #00e5ff33!important;
+}
+.password-row{
+display:flex;
+align-items:center;
+gap:8px;
+margin:4px 0 10px;
+color:#bdaacb;
+font-size:14px;
+}
+.password-row input{
+accent-color:#9d5cff;
+}
+`;
+document.head.appendChild(style);
+
+
+/* Pokaż / ukryj hasło */
+const pass=document.getElementById('pass');
+
+if(pass && !document.getElementById('showPassword')){
+const row=document.createElement('label');
+row.className='password-row';
+row.innerHTML=
+'<input id="showPassword" type="checkbox"> Pokaż hasło';
+
+pass.insertAdjacentElement('afterend',row);
+
+document.getElementById('showPassword').onchange=function(){
+pass.type=this.checked?'text':'password';
+};
+}
+
+
+/* Motyw Neon */
+window.applyNeonTheme=function(){
+
+const active=
+localStorage.getItem('gemquest_neon')==='1';
+
+document.body.classList.toggle('neon-mode',active);
+
+const buttons=document.querySelectorAll(
+'[onclick*="buyDecoration"]'
+);
+
+buttons.forEach(function(btn){
+btn.textContent=
+active
+?'✨ Wyłącz Neon'
+:'Odblokuj';
+});
+
+};
+
+
+/* Zastępujemy funkcję sklepu lepszą wersją */
+window.buyDecoration=async function(type){
+
+if(type!=='neon') return;
+
+const key='gemquest_neon';
+
+if(localStorage.getItem(key)==='1'){
+
+localStorage.removeItem(key);
+
+applyNeonTheme();
+
+msg('🎨 Motyw Neon został wyłączony.');
+
+return;
+}
+
+if(P.coins<300){
+
+msg('Brakuje Ci 300 monet.');
+
+return;
+}
+
+P.coins-=300;
+
+localStorage.setItem(key,'1');
+
+applyNeonTheme();
+
+render();
+
+await save();
+
+msg('🎨 Motyw Neon został odblokowany i aktywowany!');
+
+};
+
+
+/* Klawiatura — Enter loguje */
+const email=document.getElementById('email');
+const password=document.getElementById('pass');
+
+if(email) email.addEventListener('keydown',function(e){
+if(e.key==='Enter') login();
+});
+
+if(password) password.addEventListener('keydown',function(e){
+if(e.key==='Enter') login();
+});
+
+
+/* Przyjazne powitanie */
+const oldStart=window.start;
+
+if(typeof oldStart==='function'){
+
+window.start=async function(u){
+
+await oldStart(u);
+
+applyNeonTheme();
+
+};
+
+}
+
+
+/* Uruchomienie */
+setTimeout(function(){
+applyNeonTheme();
+},300);
+
+})();
 </script>
 
 </body>
