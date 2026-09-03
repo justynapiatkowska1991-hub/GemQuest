@@ -1769,6 +1769,492 @@ applyNeonTheme();
 },300);
 
 })();
+  /* =====================================================
+   PAKIET 2 — OSIĄGNIĘCIA + SERIA DNI + STATYSTYKI
+   ===================================================== */
+
+(function(){
+
+const STORAGE='gemquest_stats_v2';
+
+function getStats(){
+
+try{
+return JSON.parse(
+localStorage.getItem(STORAGE)
+)||{
+games:0,
+wins:0,
+streak:0,
+bestStreak:0,
+lastDay:'',
+achievements:[]
+};
+}catch(e){
+return{
+games:0,
+wins:0,
+streak:0,
+bestStreak:0,
+lastDay:'',
+achievements:[]
+};
+}
+
+}
+
+function saveStats(s){
+localStorage.setItem(STORAGE,JSON.stringify(s));
+}
+
+
+/* ===== SERIA DNI ===== */
+
+function updateDailyStreak(){
+
+const s=getStats();
+
+const today=
+new Date().toISOString().slice(0,10);
+
+if(s.lastDay===today)
+return s;
+
+if(!s.lastDay){
+
+s.streak=1;
+
+}else{
+
+const old=new Date(s.lastDay);
+const now=new Date(today);
+
+const diff=
+Math.round(
+(now-old)/86400000
+);
+
+if(diff===1){
+
+s.streak++;
+
+}else if(diff>1){
+
+s.streak=1;
+
+}
+
+}
+
+s.lastDay=today;
+
+s.bestStreak=
+Math.max(
+s.bestStreak,
+s.streak
+);
+
+saveStats(s);
+
+return s;
+
+}
+
+
+/* ===== LISTA OSIĄGNIĘĆ ===== */
+
+const ACHIEVEMENTS=[
+
+{
+id:'first',
+name:'🌱 Pierwszy krok',
+desc:'Uruchom swoją pierwszą grę.',
+reward:50
+},
+
+{
+id:'games5',
+name:'🎮 Gracz',
+desc:'Zagraj 5 gier.',
+reward:100
+},
+
+{
+id:'games10',
+name:'🔥 Zaangażowany',
+desc:'Zagraj 10 gier.',
+reward:200
+},
+
+{
+id:'score100',
+name:'💯 Setka',
+desc:'Zdobądź 100 punktów.',
+reward:50
+},
+
+{
+id:'score500',
+name:'🏅 500 punktów',
+desc:'Zdobądź 500 punktów.',
+reward:100
+},
+
+{
+id:'score1000',
+name:'🏆 Tysiąc',
+desc:'Zdobądź 1000 punktów.',
+reward:200
+},
+
+{
+id:'score5000',
+name:'💎 Mistrz klejnotów',
+desc:'Zdobądź 5000 punktów.',
+reward:500
+},
+
+{
+id:'level3',
+name:'🚀 Awans',
+desc:'Osiągnij poziom 3.',
+reward:150
+},
+
+{
+id:'level5',
+name:'👑 Mistrz poziomu',
+desc:'Osiągnij poziom 5.',
+reward:300
+},
+
+{
+id:'coins2000',
+name:'🪙 Kolekcjoner',
+desc:'Zgromadź 2000 monet.',
+reward:150
+},
+
+{
+id:'crystals50',
+name:'💠 Kryształowa kolekcja',
+desc:'Zgromadź 50 kryształów.',
+reward:150
+},
+
+{
+id:'streak3',
+name:'🔥 Trzy dni',
+desc:'Graj przez 3 kolejne dni.',
+reward:150
+},
+
+{
+id:'streak7',
+name:'⭐ Tydzień',
+desc:'Graj przez 7 kolejnych dni.',
+reward:500
+}
+
+];
+
+
+/* ===== SPRAWDZANIE OSIĄGNIĘĆ ===== */
+
+function checkAchievements(){
+
+const s=getStats();
+const unlocked=s.achievements||[];
+
+const values={
+
+first:s.games>=1,
+games5:s.games>=5,
+games10:s.games>=10,
+
+score100:P.best_score>=100,
+score500:P.best_score>=500,
+score1000:P.best_score>=1000,
+score5000:P.best_score>=5000,
+
+level3:P.level>=3,
+level5:P.level>=5,
+
+coins2000:P.coins>=2000,
+crystals50:P.crystals>=50,
+
+streak3:s.streak>=3,
+streak7:s.streak>=7
+
+};
+
+let changed=false;
+
+ACHIEVEMENTS.forEach(a=>{
+
+if(
+values[a.id] &&
+!unlocked.includes(a.id)
+){
+
+unlocked.push(a.id);
+changed=true;
+
+P.coins+=a.reward;
+
+setTimeout(function(){
+
+msg(
+'🏆 Osiągnięcie: '+
+a.name+
+' +'+
+a.reward+
+' 🪙'
+);
+
+},100);
+
+}
+
+});
+
+if(changed){
+
+s.achievements=unlocked;
+
+saveStats(s);
+
+if(typeof render==='function')
+render();
+
+if(typeof save==='function')
+save();
+
+}
+
+return s;
+
+}
+
+
+/* ===== NOWA WERSJA ODZNAK ===== */
+
+function renderAchievements(){
+
+const box=$('badges');
+
+if(!box)
+return;
+
+const s=getStats();
+
+let html='';
+
+ACHIEVEMENTS.forEach(a=>{
+
+const done=
+s.achievements.includes(a.id);
+
+html+=`
+
+<div style="
+padding:12px;
+margin:7px 0;
+border-radius:14px;
+background:${done?'#59e39a18':'#ffffff06'};
+border:1px solid ${done?'#59e39a55':'#ffffff12'};
+">
+
+<div style="
+font-size:17px;
+font-weight:700;
+">
+
+${a.name}
+
+${done?' ✅':' 🔒'}
+
+</div>
+
+<div style="
+font-size:13px;
+opacity:.75;
+margin-top:4px;
+">
+
+${a.desc}
+
+</div>
+
+<div style="
+font-size:13px;
+margin-top:5px;
+color:#ffd34e;
+">
+
+🎁 Nagroda: ${a.reward} 🪙
+
+</div>
+
+</div>
+
+`;
+
+});
+
+html+=`
+
+<div style="
+margin-top:14px;
+padding:14px;
+border-radius:15px;
+background:#ffffff08;
+">
+
+<b>📊 Twoje statystyki</b>
+
+<br><br>
+
+🎮 Gry: <b>${s.games}</b>
+
+<br>
+
+🔥 Seria: <b>${s.streak} dni</b>
+
+<br>
+
+⭐ Najlepsza seria: <b>${s.bestStreak} dni</b>
+
+<br>
+
+🏆 Osiągnięcia:
+<b>${s.achievements.length}/${ACHIEVEMENTS.length}</b>
+
+</div>
+
+`;
+
+box.innerHTML=html;
+
+}
+
+
+/* ===== LICZENIE URUCHOMIEŃ GRY ===== */
+
+const originalNewGame=window.newGame;
+
+if(typeof originalNewGame==='function'){
+
+window.newGame=function(){
+
+const s=getStats();
+
+s.games++;
+
+saveStats(s);
+
+const result=
+originalNewGame.apply(this,arguments);
+
+setTimeout(function(){
+
+updateDailyStreak();
+checkAchievements();
+renderAchievements();
+
+},150);
+
+return result;
+
+};
+
+}
+
+
+/* ===== SPRAWDZANIE POSTĘPU ===== */
+
+const originalRender=window.render;
+
+if(typeof originalRender==='function'){
+
+window.render=function(){
+
+const result=
+originalRender.apply(this,arguments);
+
+setTimeout(function(){
+
+checkAchievements();
+
+},50);
+
+return result;
+
+};
+
+}
+
+
+/* ===== LEPSZY OPIS NEONU ===== */
+
+setTimeout(function(){
+
+document
+.querySelectorAll('.card')
+.forEach(function(card){
+
+if(
+card.innerText &&
+card.innerText.includes('Motyw Neon')
+){
+
+const p=card.querySelector('p');
+
+if(p){
+
+p.textContent=
+'Odblokowuje neonowy wygląd całej gry. Możesz go włączać i wyłączać w każdej chwili.';
+
+}
+
+}
+
+});
+
+
+updateDailyStreak();
+checkAchievements();
+renderAchievements();
+
+},500);
+
+
+/* ===== ODŚWIEŻANIE OSIĄGNIĘĆ PO OTWARCIU ZAKŁADKI ===== */
+
+const oldShowTab=window.showTab;
+
+if(typeof oldShowTab==='function'){
+
+window.showTab=function(id,btn){
+
+const result=
+oldShowTab.apply(this,arguments);
+
+if(id==='ach'){
+
+setTimeout(function(){
+renderAchievements();
+},100);
+
+}
+
+return result;
+
+};
+
+}
+
+})();
 </script>
 
 </body>
