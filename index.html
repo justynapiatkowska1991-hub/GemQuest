@@ -2787,6 +2787,428 @@ checkScoreMission();
 },800);
 
 })();
+  /* =====================================================
+   PAKIET FINALNY — GEM QUEST
+   USTAWIENIA • POMOC • DŹWIĘK • STATYSTYKI
+   ===================================================== */
+
+(function(){
+
+const SETTINGS_KEY='gemquest_final_settings_v1';
+
+function getSettings(){
+
+try{
+
+return JSON.parse(
+localStorage.getItem(SETTINGS_KEY)
+)||{
+sound:true
+};
+
+}catch(e){
+
+return{
+sound:true
+};
+
+}
+
+}
+
+function saveSettings(s){
+
+localStorage.setItem(
+SETTINGS_KEY,
+JSON.stringify(s)
+);
+
+}
+
+
+/* ===== DŹWIĘK ===== */
+
+let audioCtx=null;
+
+function playGemSound(type){
+
+const settings=getSettings();
+
+if(!settings.sound)
+return;
+
+try{
+
+if(!audioCtx){
+
+audioCtx=
+new(
+window.AudioContext||
+window.webkitAudioContext
+)();
+
+}
+
+const oscillator=
+audioCtx.createOscillator();
+
+const gain=
+audioCtx.createGain();
+
+const tones={
+click:520,
+match:740,
+combo:980,
+level:1200,
+error:180
+};
+
+oscillator.frequency.value=
+tones[type]||520;
+
+oscillator.type=
+type==='error'
+?'sawtooth'
+:'sine';
+
+oscillator.connect(gain);
+
+gain.connect(
+audioCtx.destination
+);
+
+gain.gain.setValueAtTime(
+0.0001,
+audioCtx.currentTime
+);
+
+gain.gain.exponentialRampToValueAtTime(
+0.05,
+audioCtx.currentTime+0.01
+);
+
+gain.gain.exponentialRampToValueAtTime(
+0.0001,
+audioCtx.currentTime+0.12
+);
+
+oscillator.start();
+
+oscillator.stop(
+audioCtx.currentTime+0.13
+);
+
+}catch(e){}
+
+}
+
+window.gemSound=playGemSound;
+
+
+/* ===== PANEL USTAWIEŃ ===== */
+
+function createFinalPanel(){
+
+if(
+document.getElementById(
+'gemquestFinalPanel'
+)
+)
+return;
+
+const app=
+document.getElementById('app');
+
+if(!app)
+return;
+
+const panel=
+document.createElement('section');
+
+panel.id=
+'gemquestFinalPanel';
+
+panel.className=
+'panel';
+
+panel.innerHTML=
+
+'<h2>⚙️ Ustawienia i pomoc</h2>'+
+
+'<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+
+'<button id="gemSoundButton" class="btn secondary">'+
+'🔊 Dźwięk: WŁ.'+
+'</button>'+
+
+'<button id="gemHelpButton" class="btn secondary">'+
+'❓ Jak grać?'+
+'</button>'+
+
+'</div>'+
+
+'<div id="gemHelpText" class="notice" '+
+'style="display:none;margin-top:12px">'+
+
+'<b>🎮 Jak grać?</b>'+
+'<br><br>'+
+
+'Zamieniaj miejscami sąsiednie klejnoty.'+
+'<br>'+
+
+'Twórz zestawy minimum 3 takich samych.'+
+'<br><br>'+
+
+'🔥 Combo daje dodatkowe punkty.'+
+'<br>'+
+
+'🪙 Monety zdobywasz podczas gry.'+
+'<br>'+
+
+'💎 Kryształy są wirtualną walutą gry.'+
+'<br>'+
+
+'🏆 Wyniki i postęp są zapisywane na koncie.'+
+'<br><br>'+
+
+'<strong>'+
+'Gra nie zawiera zakładów, płatności ani wypłat pieniężnych.'+
+'</strong>'+
+
+'</div>'+
+
+'<div id="gemFinalStats" style="margin-top:14px"></div>';
+
+app.appendChild(panel);
+
+const soundButton=
+document.getElementById(
+'gemSoundButton'
+);
+
+const helpButton=
+document.getElementById(
+'gemHelpButton'
+);
+
+const helpText=
+document.getElementById(
+'gemHelpText'
+);
+
+const settings=
+getSettings();
+
+soundButton.textContent=
+settings.sound
+?'🔊 Dźwięk: WŁ.'
+:'🔇 Dźwięk: WYŁ.';
+
+soundButton.onclick=
+function(){
+
+const s=
+getSettings();
+
+s.sound=
+!s.sound;
+
+saveSettings(s);
+
+soundButton.textContent=
+s.sound
+?'🔊 Dźwięk: WŁ.'
+:'🔇 Dźwięk: WYŁ.';
+
+if(s.sound)
+playGemSound('click');
+
+};
+
+helpButton.onclick=
+function(){
+
+helpText.style.display=
+helpText.style.display==='none'
+?'block'
+:'none';
+
+};
+
+}
+
+
+/* ===== STATYSTYKI PROFILU ===== */
+
+function renderFinalStats(){
+
+const box=
+document.getElementById(
+'gemFinalStats'
+);
+
+if(!box)
+return;
+
+let stats={};
+
+try{
+
+stats=
+JSON.parse(
+localStorage.getItem(
+'gemquest_stats_v2'
+)
+)||{};
+
+}catch(e){}
+
+const achievements=
+Array.isArray(stats.achievements)
+?stats.achievements.length
+:0;
+
+box.innerHTML=
+
+'<div style="'+
+'padding:14px;'+
+'border-radius:16px;'+
+'background:#ffffff08;'+
+'">'+
+
+'<b>📊 Twoje statystyki</b>'+
+
+'<div style="margin-top:10px;line-height:1.9">'+
+
+'🎮 Rozegrane gry: '+
+'<b>'+
+(stats.games||0)+
+'</b>'+
+
+'<br>'+
+
+'🔥 Aktualna seria: '+
+'<b>'+
+(stats.streak||0)+
+' dni</b>'+
+
+'<br>'+
+
+'⭐ Najlepsza seria: '+
+'<b>'+
+(stats.bestStreak||0)+
+' dni</b>'+
+
+'<br>'+
+
+'🏆 Osiągnięcia: '+
+'<b>'+
+achievements+
+'/13</b>'+
+
+'</div>'+
+
+'</div>';
+
+}
+
+
+/* ===== ANIMACJA KLEJNOTÓW ===== */
+
+document.addEventListener(
+'click',
+function(e){
+
+const button=
+e.target.closest('button');
+
+if(!button)
+return;
+
+if(
+button.classList.contains('gem')&&
+!button.classList.contains('empty')
+){
+
+playGemSound('click');
+
+try{
+
+button.animate(
+[
+{
+transform:'scale(1)'
+},
+{
+transform:'scale(.88)'
+},
+{
+transform:'scale(1)'
+}
+],
+{
+duration:130
+}
+);
+
+}catch(err){}
+
+}
+
+}
+);
+
+
+/* ===== AKTUALIZACJA PANELU ===== */
+
+const oldRender=
+window.render;
+
+if(
+typeof oldRender==='function'
+){
+
+window.render=
+function(){
+
+const result=
+oldRender.apply(
+this,
+arguments
+);
+
+setTimeout(
+function(){
+
+createFinalPanel();
+
+renderFinalStats();
+
+},
+80
+);
+
+return result;
+
+};
+
+}
+
+
+/* ===== START ===== */
+
+setTimeout(
+function(){
+
+createFinalPanel();
+
+renderFinalStats();
+
+},
+1000
+);
+
+})();
 </script>
 
 </body>
