@@ -3602,6 +3602,60 @@ renderFinalStats();
 
 })();
 </script>
+<script>
+const chwile = [
+  {
+    title: "🌿 Chwila dla ciała",
+    text: "Wyjdź na 10-minutowy spacer. Nie musisz się spieszyć. Po prostu pobądź chwilę na świeżym powietrzu.",
+    points: 5
+  },
+  {
+    title: "💗 Chwila wdzięczności",
+    text: "Pomyśl o 3 rzeczach, za które możesz być dziś wdzięczna.",
+    points: 5
+  },
+  {
+    title: "🧘 Spokojny oddech",
+    text: "Usiądź wygodnie. Weź 5 powolnych, głębokich oddechów i pozwól sobie na chwilę spokoju.",
+    points: 5
+  },
+  {
+    title: "☕ Zadbaj o siebie",
+    text: "Zrób sobie ulubiony napój i przez 10 minut nie rób niczego, czego nie musisz robić.",
+    points: 5
+  },
+  {
+    title: "📵 Chwila bez telefonu",
+    text: "Odłóż telefon na 15 minut. Posłuchaj muzyki, popatrz przez okno albo po prostu odpocznij.",
+    points: 5
+  },
+  {
+    title: "🌸 Powiedz coś dobrego sobie",
+    text: "Stań przed lustrem i powiedz sobie jedno dobre zdanie. Tak, jak powiedziałabyś je bliskiej osobie.",
+    points: 5
+  }
+];
 
+function wybierzChwile() {
+  const chwila = chwile[Math.floor(Math.random() * chwile.length)];
+
+  alert(
+    chwila.title +
+    "\\n\\n" +
+    chwila.text +
+    "\\n\\n✨ +" + chwila.points + " punktów"
+  );
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const buttons = document.querySelectorAll("button");
+
+  buttons.forEach(function(button) {
+    if (button.textContent.includes("Wybierz coś dla mnie")) {
+      button.addEventListener("click", wybierzChwile);
+    }
+  });
+});
+</script>
 </body>
 </html>
